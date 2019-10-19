@@ -1,36 +1,41 @@
-/*
-*
-* Assignment 3
-* Starter Files
-*
-* CS47
-* Oct, 2018
-*/
+// Assignment 3
+//Tommy Bruzzese
+
 
 import React from 'react';
-import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, TextInput, View, SafeAreaView, Image, Dimensions, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from 'react-native'
 import { Images, Colors } from './App/Themes'
+import { FontAwesome } from '@expo/vector-icons'
 import APIRequest from './App/Config/APIRequest'
 
-import News from './App/Components/News'
-import Search from './App/Components/Search'
+import News from './App/Components/News';
+import Search from './App/Components/Search';
+
+var { height, width } = Dimensions.get('window');
 
 export default class App extends React.Component {
-
   state = {
-    loading: true,
-    articles : [],
-    searchText: '',
-    category: ''
+      loading: true,
+      articles : [],
+      searchText: '',
+      category: ''
+  }
+
+  onChangeText = text => {
+    this.setState({searchText: text});
+  }
+
+  conductSearch = () => {
+    this.setState({searchText: ""});
+    this.loadArticles(this.state.searchText, category = '')
   }
 
   componentDidMount() {
-
-    //uncomment this to run an API query!
-    //this.loadArticles();
+    this.loadArticles();
   }
 
   async loadArticles(searchTerm = '', category = '') {
+    console.log("running");
     this.setState({articles:[], loading: true});
     var resultArticles = [];
     if (category === '') {
@@ -38,7 +43,6 @@ export default class App extends React.Component {
     } else {
       resultArticles = await APIRequest.requestCategoryPosts(category);
     }
-    console.log(resultArticles);
     this.setState({loading: false, articles: resultArticles})
   }
 
@@ -46,21 +50,34 @@ export default class App extends React.Component {
     const {articles, loading} = this.state;
 
     return (
-      <SafeAreaView style={styles.container}>
-
-        <Text style={{textAlign: 'center'}}>Have fun! :) {"\n"} Start by changing the API Key in "./App/Config/AppConfig.js" {"\n"} Then, take a look at the following components: {"\n"} NavigationButtons {"\n"} Search {"\n"} News {"\n"} 🔥</Text>
-
-        {/*First, you'll need a logo*/}
-
-        {/*Then your search bar*/}
-
-        {/*And some news*/}
-
-        {/*Though, you can style and organize these however you want! power to you 😎*/}
-
-        {/*If you want to return custom stuff from the NYT API, checkout the APIRequest file!*/}
-
-      </SafeAreaView>
+      <TouchableWithoutFeedback onPress = {() => Keyboard.dismiss()}>
+        <SafeAreaView style={styles.container}>
+          <Image
+            style = {{width: width * 0.9, height: 100}}
+            resizeMode = 'contain'
+            source = {Images.logo}
+          />
+          <View style={styles.container2}>
+            <View style={styles.SearchBar}>
+              <TextInput
+                  style={styles.textinput}
+                  onChangeText={text => this.onChangeText(text)}
+                  value={this.state.searchText}
+                  placeholder="Search for News"
+                  onSubmitEditing={() => this.conductSearch()}
+              />
+              <TouchableOpacity style={styles.Image}
+                onPress={() => this.conductSearch()}>
+                <FontAwesome name="search" size={20} color="#cc338b" />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <News
+            articles={this.state.articles}
+            loading={this.state.loading}
+          />
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
     );
   }
 }
@@ -71,5 +88,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  container2: {
+    //flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 10
+  },
+  SearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    height: 40,
+    margin: 5,
+    borderRadius: 10
+  },
+  textinput: {
+    flex: 1,
+    marginStart: 10,
+  },
+  Image: {
+    justifyContent: 'flex-end',
+    marginEnd: 10,
   }
+
 });
